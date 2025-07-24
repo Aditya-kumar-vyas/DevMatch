@@ -1,0 +1,36 @@
+{
+  "name": "matching",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "matching/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project matching --web",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/matching",
+        "tsConfig": "matching/tsconfig.lib.json",
+        "packageJson": "matching/package.json",
+        "main": "matching/src/index.ts",
+        "assets": ["matching/*.md"]
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["matching/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/matching"],
+      "options": {
+        "jestConfig": "matching/jest.config.ts",
+        "passWithNoTests": true
+      }
+    }
+  }
+}

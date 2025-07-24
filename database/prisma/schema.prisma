@@ -1,0 +1,350 @@
+generator client {
+  provider = "prisma-client-js"
+  output = "../../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  firstName       String
+  lastName        String
+  profilePicture  String?
+  
+  // Authentication
+  authProvider    AuthProvider @default(EMAIL)
+  googleId        String?   @unique
+  passwordHash    String?
+  emailVerified   Boolean   @default(false)
+  
+  // Company Verification
+  verificationStatus VerificationStatus @default(UNVERIFIED)
+  verifiedCompany    String?
+  companyDomain      String?
+  companyTier        CompanyTier?
+  verifiedAt         DateTime?
+  
+  // Relations
+  profile            UserProfile?
+  companyVerifications CompanyVerification[]
+  perks              UserPerks?
+  
+  // Interactions
+  interactionsFrom   Interaction[] @relation("UserInteractionsFrom")
+  interactionsTo     Interaction[] @relation("UserInteractionsTo")
+  
+  // Matches
+  matchesAsUser1     Match[]       @relation("MatchUser1")
+  matchesAsUser2     Match[]       @relation("MatchUser2")
+  
+  // Messages
+  sentMessages       Message[]
+  
+  // Analytics
+  analyticsEvents    AnalyticsEvent[]
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  lastActiveAt    DateTime  @default(now())
+  
+  @@index([email])
+  @@index([verificationStatus])
+  @@index([companyTier])
+  @@index([lastActiveAt])
+  @@map("users")
+}
+
+model UserProfile {
+  id              String  @id @default(cuid())
+  userId          String  @unique
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Basic Info
+  bio             String?
+  age             Int?
+  location        String?
+  height          String?
+  
+  // Professional
+  jobTitle        String?
+  company         String?
+  yearsExperience Int?
+  workStyle       WorkStyle?
+  
+  // Tech Stack
+  techStack       UserTechStack[]
+  
+  // Photos
+  photos          Photo[]
+  
+  // App Data
+  profileComplete Boolean @default(false)
+  onboardingComplete Boolean @default(false)
+  
+  // Preferences
+  preferences     UserPreferences?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([profileComplete, onboardingComplete])
+  @@index([age, location])
+  @@index([yearsExperience])
+  @@map("user_profiles")
+}
+
+model Photo {
+  id          String      @id @default(cuid())
+  profileId   String
+  profile     UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  url         String
+  order       Int
+  isMain      Boolean     @default(false)
+  
+  createdAt   DateTime    @default(now())
+  
+  @@index([profileId, order])
+  @@index([profileId, isMain])
+  @@map("photos")
+}
+
+model TechStack {
+  id          String            @id @default(cuid())
+  name        String            @unique
+  category    TechCategory
+  icon        String?
+  users       UserTechStack[]
+  
+  @@index([category])
+  @@index([name])
+  @@map("tech_stacks")
+}
+
+model UserTechStack {
+  profileId   String
+  techStackId String
+  profile     UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  techStack   TechStack   @relation(fields: [techStackId], references: [id])
+  experience  ExperienceLevel @default(INTERMEDIATE)
+  
+  @@id([profileId, techStackId])
+  @@map("user_tech_stacks")
+}
+
+model UserPreferences {
+  id              String      @id @default(cuid())
+  profileId       String      @unique
+  profile         UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  ageMin          Int         @default(22)
+  ageMax          Int         @default(40)
+  distance        Int         @default(50)
+  verifiedOnly    Boolean     @default(false)
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  @@map("user_preferences")
+}
+
+model CompanyVerification {
+  id                String            @id @default(cuid())
+  userId            String
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  workEmail         String
+  companyDomain     String
+  companyName       String
+  verificationCode  String
+  
+  status           VerificationStatus @default(PENDING)
+  attempts         Int               @default(0)
+  
+  requestedAt      DateTime          @default(now())
+  expiresAt        DateTime
+  verifiedAt       DateTime?
+  
+  @@unique([userId, workEmail])
+  @@index([status, expiresAt])
+  @@index([userId, status])
+  @@map("company_verifications")
+}
+
+model UserPerks {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  profileBoost     Boolean  @default(false)
+  advancedFilters  Boolean  @default(false)
+  priorityMatching Boolean  @default(false)
+  verifiedBadge    Boolean  @default(false)
+  
+  grantedAt        DateTime @default(now())
+  expiresAt        DateTime?
+  
+  @@map("user_perks")
+}
+
+model Company {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  domain      String      @unique
+  tier        CompanyTier
+  industry    String?
+  
+  logoUrl     String?
+  website     String?
+  description String?
+  
+  isActive    Boolean     @default(true)
+  userCount   Int         @default(0)
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@index([tier, isActive])
+  @@index([domain])
+  @@map("companies")
+}
+
+model Interaction {
+  id        String          @id @default(cuid())
+  fromId    String
+  toId      String
+  type      InteractionType
+  createdAt DateTime        @default(now())
+  
+  from      User           @relation("UserInteractionsFrom", fields: [fromId], references: [id])
+  to        User           @relation("UserInteractionsTo", fields: [toId], references: [id])
+  
+  @@unique([fromId, toId])
+  @@index([type, createdAt])
+  @@index([fromId])
+  @@index([toId])
+  @@map("interactions")
+}
+
+model Match {
+  id           String       @id @default(cuid())
+  user1Id      String
+  user2Id      String
+  isActive     Boolean      @default(true)
+  matchedAt    DateTime     @default(now())
+  
+  user1        User         @relation("MatchUser1", fields: [user1Id], references: [id])
+  user2        User         @relation("MatchUser2", fields: [user2Id], references: [id])
+  conversation Conversation?
+  
+  @@unique([user1Id, user2Id])
+  @@index([matchedAt])
+  @@map("matches")
+}
+
+model Conversation {
+  id            String    @id @default(cuid())
+  matchId       String    @unique
+  match         Match     @relation(fields: [matchId], references: [id])
+  
+  messages      Message[]
+  lastMessageAt DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  
+  @@index([lastMessageAt])
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id])
+  
+  content        String
+  messageType    MessageType  @default(TEXT)
+  
+  isRead         Boolean      @default(false)
+  readAt         DateTime?
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  @@index([conversationId, createdAt])
+  @@index([senderId, isRead])
+  @@map("messages")
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  
+  eventType String
+  eventData Json
+  timestamp DateTime @default(now())
+  
+  @@index([eventType, timestamp])
+  @@index([userId, timestamp])
+  @@map("analytics_events")
+}
+
+// Enums
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+}
+
+enum CompanyTier {
+  FAANG      // Google, Apple, Meta, Amazon, Netflix
+  BIG_TECH   // Microsoft, Uber, Airbnb, etc.
+  UNICORN    // $1B+ valuation
+  STARTUP    // Early stage
+  ENTERPRISE // Traditional large companies
+}
+
+enum WorkStyle {
+  REMOTE
+  HYBRID
+  OFFICE
+  FLEXIBLE
+}
+
+enum TechCategory {
+  FRONTEND
+  BACKEND
+  MOBILE
+  DEVOPS
+  DATA_SCIENCE
+  DESIGN
+}
+
+enum ExperienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  EXPERT
+}
+
+enum InteractionType {
+  LIKE
+  DISLIKE
+  SUPER_LIKE
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  SYSTEM
+}

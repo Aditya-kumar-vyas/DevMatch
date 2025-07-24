@@ -14,7 +14,15 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@dev-dating-app/auth": ["auth/src/index.ts"],
+      "@dev-dating-app/database": ["database/src/index.ts"],
+      "@dev-dating-app/matching": ["matching/src/index.ts"],
+      "@dev-dating-app/notifications": ["notifications/src/index.ts"],
+      "@dev-dating-app/shared-constants": ["shared-constants/src/index.ts"],
+      "@dev-dating-app/shared-types": ["shared-types/src/index.ts"],
+      "@dev-dating-app/shared-utils": ["shared-utils/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }

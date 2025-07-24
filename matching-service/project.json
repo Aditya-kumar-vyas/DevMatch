@@ -1,0 +1,73 @@
+{
+  "name": "matching-service",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "matching-service/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "target": "node",
+        "compiler": "tsc",
+        "outputPath": "dist/matching-service",
+        "main": "matching-service/src/main.ts",
+        "tsConfig": "matching-service/tsconfig.app.json",
+        "assets": ["matching-service/src/assets"],
+        "isolatedConfig": true,
+        "webpackConfig": "matching-service/webpack.config.js"
+      },
+      "configurations": {
+        "development": {
+          "extractLicenses": false,
+          "optimization": false,
+          "sourceMap": true,
+          "vendorChunk": true
+        },
+        "production": {
+          "extractLicenses": true,
+          "optimization": true,
+          "outputHashing": "all",
+          "sourceMap": false,
+          "namedChunks": false,
+          "vendorChunk": false
+        }
+      }
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": ["build"],
+      "options": {
+        "buildTarget": "matching-service:build",
+        "runBuildTargetDependencies": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "matching-service:build:development"
+        },
+        "production": {
+          "buildTarget": "matching-service:build:production"
+        }
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/matching-service"],
+      "options": {
+        "jestConfig": "matching-service/jest.config.ts",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["matching-service/**/*.ts"]
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "matching-service-e2e",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "implicitDependencies": ["matching-service"],
+  "projectType": "application",
+  "targets": {
+    "e2e": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{e2eProjectRoot}"],
+      "options": {
+        "jestConfig": "matching-service-e2e/jest.config.ts",
+        "passWithNoTests": true
+      },
+      "dependsOn": ["matching-service:build", "matching-service:serve"]
+    }
+  }
+}

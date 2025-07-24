@@ -1,0 +1,36 @@
+{
+  "name": "notifications",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "notifications/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project notifications --web",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/notifications",
+        "tsConfig": "notifications/tsconfig.lib.json",
+        "packageJson": "notifications/package.json",
+        "main": "notifications/src/index.ts",
+        "assets": ["notifications/*.md"]
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["notifications/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/notifications"],
+      "options": {
+        "jestConfig": "notifications/jest.config.ts",
+        "passWithNoTests": true
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "auth",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "auth/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project auth --web",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/auth",
+        "tsConfig": "auth/tsconfig.lib.json",
+        "packageJson": "auth/package.json",
+        "main": "auth/src/index.ts",
+        "assets": ["auth/*.md"]
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["auth/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/auth"],
+      "options": {
+        "jestConfig": "auth/jest.config.ts",
+        "passWithNoTests": true
+      }
+    }
+  }
+}
